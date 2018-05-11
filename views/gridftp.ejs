@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>GridFTP Transfer Service</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--===============================================================================================-->
+	<link rel="icon" type="image/png" href="images/icons/favicon.ico" />
+	<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+	<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+	<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+	<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
+	<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+	<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="css/util.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<!--===============================================================================================-->
+	<style>
+		.hidden {
+			display: none;
+		}
+	</style>
+
+</head>
+
+<body>
+	<header class="page-header " style="background-color:  	#f3edf9">
+			<form class="p-r-5 p-t-5">
+					<input class="pull-right btn btn-info " type="button" value="Disconnect" onclick="window.location.href='http://<%=source_ip.replace(' ', '')%>:8080/ '" />
+			</form> 
+		
+			<% if (typeof status != "undefined") { %>
+				<p class="fs-25 " style="color:black;">Status:
+					<%= status %>
+				</p>
+
+				<%} %>
+		
+	</header>
+	<div class="limiter">
+		<div class="container-login100 ">
+			<div class="gridftp-table ">
+
+				<div>
+					<h2>Local site:
+						<%= source_hostname %>
+							</h1>
+							<h2>IP:
+								<%= source_ip %>
+							</h2>
+							<br>
+							<br>
+							<br>
+							
+							<form action="/upload" method="post">
+								<ul>
+									<input type="hidden" name="source_name" value=<%=source_hostname %>>
+									<input type="hidden" name="source_ip" value=<%=source_ip %>>
+									<input type="hidden" name="des_name" value=<%=destination_hostname %>>
+									<input type="hidden" name="des_ip" value=<%=destination_ip %>>
+									
+
+									<table class="table table-hover table-bordered">
+										<thead>
+											<tr class="table-primary">
+												<th scope="col">Select</th>
+												<th scope="col">#</th>
+												<th scope="col">Filename</th>
+												<th scope="col">Filesize</th>
+											</tr>
+										</thead>
+
+
+
+										<tbody>
+											<% var index = 1%>
+												<% Object.keys(file_list).forEach(function(file_name){ %>
+													
+														<tr>
+															<th scope="row">
+																<input type="radio" name="source_file" id="source_file" <% if (index == 1) {%> checked="checked" <% } %> value='{"file_name": "<%= file_name %>", "file_size": "<%= file_list[file_name] %>"}' > </th>
+																
+															<td>
+																<%= index %>
+															</td>
+															<td>
+																<% %>
+																<%= file_name %>
+															</td>
+															<td>
+																<%= file_list[file_name] %>
+															</td>
+														</tr>
+														
+
+
+																<% index = index + 1; %>
+																	<% }) %>
+
+										</tbody>
+
+								</ul>
+
+
+
+
+
+								</table>
+								<center>
+									<button id="upload" type="submit" class="btn btn-success">Upload</button>
+									<button id="delete" type="submit" formaction="/local_delete" class="btn btn-danger">Delete</button>
+								</center>
+							</form>
+							<hr>
+
+							<!-- <% if (typeof status != "undefined") { %>
+								<p class="fs-25" style="color:black;">Status:
+									<%= status %>
+								</p>
+
+								<%} %> -->
+
+									<img src="images/loading.gif" class="hidden" id="loading">
+				</div>
+
+				<div>
+					<h2>Remote site:
+						<%= destination_hostname %>
+							</h1>
+							<h2>IP:
+								<%= destination_ip %>
+							</h2>
+							<br>
+							<br>
+							<br>
+
+							<form action="/Download" method="post">
+								<ul>
+									<input type="hidden" name="source_name" value=<%=source_hostname %>>
+									<input type="hidden" name="source_ip" value=<%=source_ip %>>
+									<input type="hidden" name="des_name" value=<%=destination_hostname %>>
+									<input type="hidden" name="des_ip" value=<%=destination_ip %>>
+
+									<table class="table table-hover table-bordered">
+										<thead>
+											<tr class="table-primary">
+												<th scope="col">Select</th>
+												<th scope="col">#</th>
+												<th scope="col">Filename</th>
+												<th scope="col">Filesize</th>
+											</tr>
+										</thead>
+
+
+
+										<tbody>
+											<% var index = 1%>
+												<% Object.keys(des_file_list).forEach(function(file_name){ %>
+
+													
+														<tr>
+															<th scope="row">
+																<input type="radio" name="source_file" id="source_file"  <% if (index == 1) {%> checked="checked" <% } %> value='{"file_name": "<%= file_name %>", "file_size": "<%= des_file_list[file_name] %>"}'  > </th>
+															<td>
+																<%= index %>
+															</td>
+															<td>
+																<%= file_name %>
+															</td>
+															<td>
+																<%= des_file_list[file_name] %>
+															</td>
+														</tr>
+														
+
+																<% index = index + 1; %>
+																	<% }) %>
+
+										</tbody>
+
+								</ul>
+								
+								</table>
+								<center>
+									<button id="download" type="submit" class="btn btn-success">Download</button>
+									<button id="delete" type="submit" formaction="/remote_delete" class="btn btn-danger">Delete</button>
+
+								</center>
+							</form>
+
+							<hr>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+
+	<!--===============================================================================================-->
+	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+	<!--===============================================================================================-->
+	<script src="vendor/bootstrap/js/popper.js"></script>
+	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+	<!--===============================================================================================-->
+	<script src="vendor/select2/select2.min.js"></script>
+	<!--===============================================================================================-->
+	<script src="vendor/tilt/tilt.jquery.min.js"></script>
+	<script>
+		$('.js-tilt').tilt({
+			scale: 1.1
+		})
+
+		$.fn.center = function () {
+			this.css("position", "absolute");
+			this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) + $(window).scrollTop()) + "px");
+			this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) + $(window).scrollLeft()) + "px");
+			return this;
+		}
+		$("#upload").on("click", function () {
+			$("#loading").fadeIn().center();
+		});
+
+		$("#download").on("click", function () {
+			$("#loading").fadeIn().center();
+		});
+
+	</script>
+	<!--===============================================================================================-->
+	<script src="js/main.js"></script>
+
+	<footer>
+		<p>Web Application for Expresslane Project</p>
+	</footer>
+</body>
+
+</html>

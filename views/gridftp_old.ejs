@@ -1,0 +1,77 @@
+<head>
+  <link rel="stylesheet" type="text/css" href="css/gridftp.css">
+  <link rel="stylesheet" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
+  <meta ame="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<h1>This is GridFTP Page</h1>
+
+
+
+
+<div class="split left">
+  <div class="centered">
+    <img src="pictures/img_avatar2.png" alt="Avatar woman">
+    <h2>Sender
+      <br>
+      <%= source_hostname %>
+    </h2>
+    <p>IP:
+      <%= source_ip %>
+    </p>
+
+
+
+
+    <form action="/upload" method="post">
+      <ul>
+        <input type="hidden" name="source_name" value= <%=source_hostname %>>
+        <input type="hidden" name="source_ip" value= <%=source_ip %>>
+        <input type="hidden" name="des_name" value= <%=destination_hostname %>>
+        <input type="hidden" name="des_ip" value= <%=destination_ip %>>
+        <% Object.keys(file_list).forEach(function(file_name){ %>
+
+          <input type="radio" name="source_file" id="source_file" value=<%=file_name %> >
+          <%= file_name %>
+            <%= file_list[file_name] %>
+              <br>
+              <% }) %>
+      </ul>
+      <button type="submit">Send File</button>
+    </form>
+
+
+
+  </div>
+</div>
+
+<div class="split right">
+  <div class="centered">
+    <img src="pictures/img_avatar.png" alt="Avatar man">
+    <h2> Reciever
+      <br>
+      <%= destination_hostname %>
+    </h2>
+    <p>IP:
+      <%= destination_ip %>
+    </p>
+
+    <ul>
+      
+      <% Object.keys(des_file_list).forEach(function(file_name){ %>
+
+        <li>
+          <%= file_name %>
+          <%= des_file_list[file_name] %>
+        </li>
+            <% }) %>
+    </ul>
+
+  </div>
+  <h2>
+    <% if (typeof status != "undefined") { %>
+        <p>Status:  <%= status %> </p>
+      
+    <%} %>
+  </h2>
+</div>
