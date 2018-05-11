@@ -1,0 +1,9 @@
+# you should add new user specifically for FTP (prevent from accessing other directories)
+usermod -s /sbin/nologin testuser
+chmod a-w /home/testuser // for make client can connect to home directory of ftp server (remove write previllege)
+systemctl restart vsftpd
+
+######################################
+Alternative Fix (better solution)
+echo 'allow_writeable_chroot=YES' >> /etc/vsftpd.conf  (bypass the writable check in the vsftpd config
+systemctl restart vsftpd
