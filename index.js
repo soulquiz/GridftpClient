@@ -21,10 +21,6 @@ app.set('view engine', 'ejs');
 // Setup template engines go here.
 
 
-app.get('/ftptest', function (req, res) {
-  res.render('gridftp_test')
-})
-
 // home page
 app.get('/', function (req, res) {
   var context = req.query
