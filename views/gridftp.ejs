@@ -32,7 +32,7 @@
 <body>
 	<header class="page-header " style="background-color:  	#f3edf9">
 			<form class="p-r-5 p-t-5">
-					<input class="pull-right btn btn-info " type="button" value="Disconnect" onclick="window.location.href='http://<%=source_ip.replace(' ', '')%>:8080/ '" />
+					<input class="pull-right btn btn-info " type="button" value="Disconnect" onclick="window.location.href='http://<%=sourceIp.replace(' ', '')%>:8080/ '" />
 			</form> 
 		
 			<% if (typeof status != "undefined") { %>
@@ -52,7 +52,7 @@
 						<%= source_hostname %>
 							</h1>
 							<h2>IP:
-								<%= source_ip %>
+								<%= sourceIp %>
 							</h2>
 							<br>
 							<br>
@@ -60,10 +60,10 @@
 							
 							<form action="/upload" method="post">
 								<ul>
-									<input type="hidden" name="source_name" value=<%=source_hostname %>>
-									<input type="hidden" name="source_ip" value=<%=source_ip %>>
-									<input type="hidden" name="des_name" value=<%=destination_hostname %>>
-									<input type="hidden" name="des_ip" value=<%=destination_ip %>>
+									<input type="hidden" name="sourceName" value=<%=source_hostname %>>
+									<input type="hidden" name="sourceIp" value=<%=sourceIp %>>
+									<input type="hidden" name="desName" value=<%=desName %>>
+									<input type="hidden" name="desIp" value=<%=desIp %>>
 									
 
 									<table class="table table-hover table-bordered">
@@ -84,7 +84,7 @@
 													
 														<tr>
 															<th scope="row">
-																<input type="radio" name="source_file" id="source_file" <% if (index == 1) {%> checked="checked" <% } %> value='{"file_name": "<%= file_name %>", "file_size": "<%= file_list[file_name] %>"}' > </th>
+																<input type="radio" name="sourceFile" id="sourceFile" <% if (index == 1) {%> checked="checked" <% } %> value='{"file_name": "<%= file_name %>", "file_size": "<%= file_list[file_name] %>"}' > </th>
 																
 															<td>
 																<%= index %>
@@ -131,10 +131,10 @@
 
 				<div>
 					<h2>Remote site:
-						<%= destination_hostname %>
+						<%= desName %>
 							</h1>
 							<h2>IP:
-								<%= destination_ip %>
+								<%= desIp %>
 							</h2>
 							<br>
 							<br>
@@ -142,10 +142,10 @@
 
 							<form action="/Download" method="post">
 								<ul>
-									<input type="hidden" name="source_name" value=<%=source_hostname %>>
-									<input type="hidden" name="source_ip" value=<%=source_ip %>>
-									<input type="hidden" name="des_name" value=<%=destination_hostname %>>
-									<input type="hidden" name="des_ip" value=<%=destination_ip %>>
+									<input type="hidden" name="sourceName" value=<%=source_hostname %>>
+									<input type="hidden" name="sourceIp" value=<%=sourceIp %>>
+									<input type="hidden" name="desName" value=<%=desName %>>
+									<input type="hidden" name="desIp" value=<%=desIp %>>
 
 									<table class="table table-hover table-bordered">
 										<thead>
@@ -166,7 +166,7 @@
 													
 														<tr>
 															<th scope="row">
-																<input type="radio" name="source_file" id="source_file"  <% if (index == 1) {%> checked="checked" <% } %> value='{"file_name": "<%= file_name %>", "file_size": "<%= des_file_list[file_name] %>"}'  > </th>
+																<input type="radio" name="sourceFile" id="sourceFile"  <% if (index == 1) {%> checked="checked" <% } %> value='{"file_name": "<%= file_name %>", "file_size": "<%= des_file_list[file_name] %>"}'  > </th>
 															<td>
 																<%= index %>
 															</td>
