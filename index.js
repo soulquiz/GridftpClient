@@ -28,15 +28,6 @@ app.set('view engine', 'ejs')
 // home page
 app.get('/', function (req, res) {
   var context = req.query
-  const io = require('socket.io').listen(server)
-
-  io.on('connection', function (socket) {
-    console.log(`connected`)
-
-    socket.on('disconnect', function () {
-      console.log(`disconnect`)
-    })
-  })
   res.render('index', context)
 })
 
@@ -276,19 +267,19 @@ app.get('/gridftp', function (req, res) {
                   context.desFileList = result // get file list of destination host
 
                   // create socket.io to connect with browser clients
-                  const io = require('socket.io').listen(server)
+                  // const io = require('socket.io').listen(server)
 
                   // create destination socket io to connect with destination host
-                  const desIO = require('socket.io-client')(`http://${context.desIp}:8080`)
-                  
-                  io.on('connection', function (socket) {
-                    console.log(`connected`)
+                  const desIO = require('socket.io-client')(`http://${context.desIp}`)
+                  // console.log(`http://${context.desIp}:8080/gridftp`)
+                  // io.on('connection', function (socket) {
+                  //   console.log(`gridftp connected`)
 
-                    io.emit('talk', 'chatchai')
-                    socket.on('disconnect', function () {
-                      console.log(`disconnect`)
-                    })
-                  })
+                  //   io.emit('talk', 'chatchai')
+                  //   socket.on('disconnect', function () {
+                  //     console.log(`gridftp disconnect`)
+                  //   })
+                  // })
 
                   res.render('gridftp', context)
                 })
@@ -340,4 +331,15 @@ app.get('/listfile', function (req, res) {
       }
     }
   )
+})
+
+// create socket.io to connect with browser clients
+const io = require('socket.io').listen(server)
+
+io.on('connection', function (socket) {
+  console.log(`connected`)
+
+  socket.on('disconnect', function () {
+    console.log(`disconnect`)
+  })
 })
