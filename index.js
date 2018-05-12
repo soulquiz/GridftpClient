@@ -7,7 +7,16 @@ var request = require('request')
 var url = require('url')
 var now = require('performance-now')
 var filesizeParser = require('filesize-parser')
+var appPort = process.env.port || 8080
 
+// start express to listen on port 8080
+var server = app.listen(appPort, function () {
+  var host = 'localhost'
+  var port = server.address().port
+  console.log('GridFTP App listening at http://%s:%s', host, port)
+})
+
+// app use && app set
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static('public'))
@@ -19,6 +28,15 @@ app.set('view engine', 'ejs')
 // home page
 app.get('/', function (req, res) {
   var context = req.query
+  const io = require('socket.io').listen(server)
+
+  io.on('connection', function (socket) {
+    console.log(`connected`)
+
+    socket.on('disconnect', function () {
+      console.log(`disconnect`)
+    })
+  })
   res.render('index', context)
 })
 
@@ -256,6 +274,22 @@ app.get('/gridftp', function (req, res) {
 
                 getFileList(context.desIp, 8080, function (result) {
                   context.desFileList = result // get file list of destination host
+
+                  // create socket.io to connect with browser clients
+                  const io = require('socket.io').listen(server)
+
+                  // create destination socket io to connect with destination host
+                  const desIO = require('socket.io-client')(`http://${context.desIp}:8080`)
+                  
+                  io.on('connection', function (socket) {
+                    console.log(`connected`)
+
+                    io.emit('talk', 'chatchai')
+                    socket.on('disconnect', function () {
+                      console.log(`disconnect`)
+                    })
+                  })
+
                   res.render('gridftp', context)
                 })
               })
@@ -306,10 +340,4 @@ app.get('/listfile', function (req, res) {
       }
     }
   )
-})
-
-var server = app.listen(8080, function () {
-  var host = 'localhost'
-  var port = server.address().port
-  console.log('GridFTP App listening at http://%s:%s', host, port)
 })
