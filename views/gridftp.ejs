@@ -49,7 +49,7 @@
 
 				<div>
 					<h2>Local site:
-						<%= source_hostname %>
+						<%= sourceHostName %>
 							</h1>
 							<h2>IP:
 								<%= sourceIp %>
@@ -60,7 +60,7 @@
 							
 							<form action="/upload" method="post">
 								<ul>
-									<input type="hidden" name="sourceName" value=<%=source_hostname %>>
+									<input type="hidden" name="sourceName" value=<%=sourceHostName %>>
 									<input type="hidden" name="sourceIp" value=<%=sourceIp %>>
 									<input type="hidden" name="desName" value=<%=desName %>>
 									<input type="hidden" name="desIp" value=<%=desIp %>>
@@ -80,21 +80,21 @@
 
 										<tbody>
 											<% var index = 1%>
-												<% Object.keys(file_list).forEach(function(file_name){ %>
+												<% Object.keys(fileList).forEach(function(fileName){ %>
 													
 														<tr>
 															<th scope="row">
-																<input type="radio" name="sourceFile" id="sourceFile" <% if (index == 1) {%> checked="checked" <% } %> value='{"file_name": "<%= file_name %>", "file_size": "<%= file_list[file_name] %>"}' > </th>
+																<input type="radio" name="sourceFile" id="sourceFile" <% if (index == 1) {%> checked="checked" <% } %> value='{"fileName": "<%= fileName %>", "fileSize": "<%= fileList[fileName] %>"}' > </th>
 																
 															<td>
 																<%= index %>
 															</td>
 															<td>
 																<% %>
-																<%= file_name %>
+																<%= fileName %>
 															</td>
 															<td>
-																<%= file_list[file_name] %>
+																<%= fileList[fileName] %>
 															</td>
 														</tr>
 														
@@ -142,7 +142,7 @@
 
 							<form action="/Download" method="post">
 								<ul>
-									<input type="hidden" name="sourceName" value=<%=source_hostname %>>
+									<input type="hidden" name="sourceName" value=<%=sourceHostName %>>
 									<input type="hidden" name="sourceIp" value=<%=sourceIp %>>
 									<input type="hidden" name="desName" value=<%=desName %>>
 									<input type="hidden" name="desIp" value=<%=desIp %>>
@@ -161,20 +161,20 @@
 
 										<tbody>
 											<% var index = 1%>
-												<% Object.keys(des_file_list).forEach(function(file_name){ %>
+												<% Object.keys(desFileList).forEach(function(fileName){ %>
 
 													
 														<tr>
 															<th scope="row">
-																<input type="radio" name="sourceFile" id="sourceFile"  <% if (index == 1) {%> checked="checked" <% } %> value='{"file_name": "<%= file_name %>", "file_size": "<%= des_file_list[file_name] %>"}'  > </th>
+																<input type="radio" name="sourceFile" id="sourceFile"  <% if (index == 1) {%> checked="checked" <% } %> value='{"fileName": "<%= fileName %>", "fileSize": "<%= desFileList[fileName] %>"}'  > </th>
 															<td>
 																<%= index %>
 															</td>
 															<td>
-																<%= file_name %>
+																<%= fileName %>
 															</td>
 															<td>
-																<%= des_file_list[file_name] %>
+																<%= desFileList[fileName] %>
 															</td>
 														</tr>
 														
