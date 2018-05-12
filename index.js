@@ -270,7 +270,10 @@ app.get('/gridftp', function (req, res) {
                   // const io = require('socket.io').listen(server)
 
                   // create destination socket io to connect with destination host
-                  const desIO = require('socket.io-client')(`http://${context.desIp}`)
+                  const desIO = require('socket.io-client')(`http://${context.desIp}:8080`)
+                  desIO.on('connect', function (socket) {
+                    desIO.emit('talk', context.sourceIp)
+                  })
                   // console.log(`http://${context.desIp}:8080/gridftp`)
                   // io.on('connection', function (socket) {
                   //   console.log(`gridftp connected`)
@@ -338,6 +341,10 @@ const io = require('socket.io').listen(server)
 
 io.on('connection', function (socket) {
   console.log(`connected`)
+
+  socket.on('talk', function (ip) {
+    console.log(`hello ${ip}`)
+  })
 
   socket.on('disconnect', function () {
     console.log(`disconnect`)
