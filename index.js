@@ -31,6 +31,73 @@ app.get('/', function (req, res) {
   res.render('index', context)
 })
 
+// gridftp page
+app.get('/gridftp', function (req, res) {
+  checkConnectivity(req.query.desName, 8080, function (connectivity, desIp, err, status) {
+    if (connectivity === false) { // can't connect
+      var context = {
+        connectivity: connectivity,
+        status: status
+      }
+      res.redirect(url.format({
+        pathname: '/',
+        query: context
+      })
+      )
+    } else { // can connect
+      cmd.get('hostname', function (err, data, stderr) { // get source hostname
+        if (!err) {
+          data = data.replace('\n', '') // remove \n from data return
+          var context = { sourceHostName: data }
+
+          cmd.get('hostname -I', function (err, data, stderr) { // get souece ip
+            if (!err) {
+              context.sourceIp = data.replace('\n', '') // remove \n from data return
+              getFileList('localhost', 8080, function (body) {
+                context.fileList = body // get file list
+
+                context.desName = req.query.desName // get destination information from form
+                context.desIp = req.query.desIp
+                context.status = req.query.status
+
+                getFileList(context.desIp, 8080, function (result) {
+                  context.desFileList = result // get file list of destination host
+
+                  // create socket.io to connect with browser clients
+                  // const io = require('socket.io').listen(server)
+
+                  // create destination socket io to connect with destination host
+                  // const desIO = require('socket.io-client')(`http://${context.desIp}:8080`)
+                  // desIO.on('connect', function (socket) {
+                  //   desIO.emit('talk', context.sourceIp)
+                  // })
+                  // console.log(`http://${context.desIp}:8080/gridftp`)
+                  // io.on('connection', function (socket) {
+                  //   console.log(`gridftp connected`)
+
+                  //   io.emit('talk', 'chatchai')
+                  //   socket.on('disconnect', function () {
+                  //     console.log(`gridftp disconnect`)
+                  //   })
+                  // })
+
+                  res.render('gridftp', context)
+                })
+              })
+            } else {
+              console.log('error : ', err)
+              res.redirect('/') // return to home page
+            }
+          })
+        } else {
+          console.log('error : ', err)
+          res.redirect('/') // return to home page
+        }
+      })
+    }
+  })
+})
+
 function checkConnectivity (desHostName, desPort, next) {
   cmd.get('ping -c 1 ' + desHostName, function (err, data, stderr) {
     if (!err) {
@@ -232,73 +299,6 @@ app.post('/upload', function (req, res) {
 // transfer file download by gsiftp
 app.post('/download', function (req, res) {
   transferFile(req, res, req.body.desName, req.body.sourceName, 'Download')
-})
-
-// gridftp page
-app.get('/gridftp', function (req, res) {
-  checkConnectivity(req.query.desName, 8080, function (connectivity, desIp, err, status) {
-    if (connectivity === false) { // can't connect
-      var context = {
-        connectivity: connectivity,
-        status: status
-      }
-      res.redirect(url.format({
-        pathname: '/',
-        query: context
-      })
-      )
-    } else { // can connect
-      cmd.get('hostname', function (err, data, stderr) { // get source hostname
-        if (!err) {
-          data = data.replace('\n', '') // remove \n from data return
-          var context = { sourceHostName: data }
-
-          cmd.get('hostname -I', function (err, data, stderr) { // get souece ip
-            if (!err) {
-              context.sourceIp = data.replace('\n', '') // remove \n from data return
-              getFileList('localhost', 8080, function (body) {
-                context.fileList = body // get file list
-
-                context.desName = req.query.desName // get destination information from form
-                context.desIp = req.query.desIp
-                context.status = req.query.status
-
-                getFileList(context.desIp, 8080, function (result) {
-                  context.desFileList = result // get file list of destination host
-
-                  // create socket.io to connect with browser clients
-                  // const io = require('socket.io').listen(server)
-
-                  // create destination socket io to connect with destination host
-                  const desIO = require('socket.io-client')(`http://${context.desIp}:8080`)
-                  desIO.on('connect', function (socket) {
-                    desIO.emit('talk', context.sourceIp)
-                  })
-                  // console.log(`http://${context.desIp}:8080/gridftp`)
-                  // io.on('connection', function (socket) {
-                  //   console.log(`gridftp connected`)
-
-                  //   io.emit('talk', 'chatchai')
-                  //   socket.on('disconnect', function () {
-                  //     console.log(`gridftp disconnect`)
-                  //   })
-                  // })
-
-                  res.render('gridftp', context)
-                })
-              })
-            } else {
-              console.log('error : ', err)
-              res.redirect('/') // return to home page
-            }
-          })
-        } else {
-          console.log('error : ', err)
-          res.redirect('/') // return to home page
-        }
-      })
-    }
-  })
 })
 
 // list files in file path (return json filename and size)
