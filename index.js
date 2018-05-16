@@ -247,19 +247,19 @@ function transferFile (req, res, sourceName, desName, method) {
 }
 
 // transfer via gsiftp and socketIo
-function transferFileSocket (sourceName, desName, method, sourceFile) {
+function transferFileSocket (sourceName, desName, method, sourceFile, socketName) {
   checkConnectivity(desName, 2811, function (connectivity, desIp, err, status) {
     if (connectivity === false) { // can't connect
-      io.emit('localUpload', {connectivity: connectivity, status: status}) // closed device or closed port
+      io.emit(socketName, {connectivity: connectivity, status: status}) // closed device or closed port
     } else { // can connect des 2811 => check 2811 source
       checkConnectivity(sourceName, 2811, function (connectivity, sourceIp, err, status) {
         if (connectivity === false) { // can't connect
-          io.emit('localUpload', {connectivity: connectivity, status: status}) // closed device or closed port
+          io.emit(socketName, {connectivity: connectivity, status: status}) // closed device or closed port
         } else { // can connect  => check port 7512 myproxy
           var myproxyHostName = 'myproxy.expresslane.com'
           checkConnectivity(myproxyHostName, 7512, function (connectivity, desIp, err, status) {
             if (connectivity === false) { // can't connect
-              io.emit('localUpload', {connectivity: connectivity, status: status}) // closed device or closed port
+              io.emit(socketName, {connectivity: connectivity, status: status}) // closed device or closed port
             } else { // can connect => start file sending
               var filePath = '/home/guser/Desktop/'
               sourceFile.fileSize = sourceFile.fileSize.split(' ').join('') // remove space for filesizeParser
@@ -278,27 +278,47 @@ function transferFileSocket (sourceName, desName, method, sourceFile) {
                     var speed = (fileSize / duration).toFixed(2) // speed with 2 decimals
                     console.log('speed: ' + speed + ' MB/s')
 
-                    getFileList(desName, 8080, function (fileList) {
-                      var status = method + ' ' + sourceFile.fileName + ' success in ' + duration + ' seconds ' + '(' + speed + ' MB/s)'
-                      io.emit('localUpload', {connectivity: true, status: status, fileList: fileList}) // update table and status
+                    if (method === 'Upload') {
+                      getFileList(desName, 8080, function (fileList) {
+                        var status = method + ' ' + sourceFile.fileName + ' success in ' + duration + ' seconds ' + '(' + speed + ' MB/s)'
+                        io.emit(socketName, {connectivity: true, status: status, fileList: fileList}) // update table and status
 
-                      request.post({ // update local table of destination
-                        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-                        url: 'http://' + desName + ':8080' + '/updateLocalTable',
-                        form: {fileList: fileList}
-                      }, function (error, response, body) {
-                        console.log(error)
-                        if (!error) { // check if not error while request
-                          console.log('Update Local Table ' + desName + 'success')
-                        } else { // if error while request to delete
+                        request.post({ // update local table of destination
+                          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                          url: 'http://' + desName + ':8080' + '/updateLocalTable',
+                          form: {fileList: fileList}
+                        }, function (error, response, body) {
                           console.log(error)
-                        }
+                          if (!error) { // check if not error while request
+                            console.log('Update Local Table ' + desName + 'success')
+                          } else { // if error while request to delete
+                            console.log(error)
+                          }
+                        })
                       })
-                    })
+                    } else if (method === 'Download') {
+                      getFileList(sourceName, 8080, function (fileList) {
+                        var status = method + ' ' + sourceFile.fileName + ' success in ' + duration + ' seconds ' + '(' + speed + ' MB/s)'
+                        io.emit(socketName, {connectivity: true, status: status, fileList: fileList}) // update table and status
+
+                        request.post({ // update remote table of destination
+                          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                          url: 'http://' + desName + ':8080' + '/updateRemoteTable',
+                          form: {fileList: fileList}
+                        }, function (error, response, body) {
+                          console.log(error)
+                          if (!error) { // check if not error while request
+                            console.log('Update Remote Table ' + desName + 'success')
+                          } else { // if error while request to delete
+                            console.log(error)
+                          }
+                        })
+                      })
+                    }
                   } else {
                     console.log(err)
                     status = 'Error in grid authentication or transfering or permission denied file'
-                    io.emit('localUpload', {connectivity: false, status: status}) // update table and status
+                    io.emit(socketName, {connectivity: false, status: status}) // update table and status
                   }
                 }
               )
@@ -432,7 +452,14 @@ io.on('connection', function (socket) {
     var sourceName = context.sourceName
     var desName = context.desName
     var sourceFile = context.sourceFile
-    transferFileSocket(sourceName, desName, 'Upload', sourceFile)
+    transferFileSocket(sourceName, desName, 'Upload', sourceFile, 'localUpload')
+  })
+
+  socket.on('remoteDownload', function (context) {
+    var sourceName = context.sourceName
+    var desName = context.desName
+    var sourceFile = context.sourceFile
+    transferFileSocket(desName, sourceName, 'Download', sourceFile, 'remoteDownload')
   })
 
   socket.on('localDelete', function (context) {
