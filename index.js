@@ -297,13 +297,13 @@ function transferFileSocket (sourceName, desName, method, sourceFile, socketName
                         })
                       })
                     } else if (method === 'Download') {
-                      getFileList(sourceName, 8080, function (fileList) {
+                      getFileList(desName, 8080, function (fileList) {
                         var status = method + ' ' + sourceFile.fileName + ' success in ' + duration + ' seconds ' + '(' + speed + ' MB/s)'
                         io.emit(socketName, {connectivity: true, status: status, fileList: fileList}) // update table and status
 
                         request.post({ // update remote table of destination
                           headers: { 'content-type': 'application/x-www-form-urlencoded' },
-                          url: 'http://' + desName + ':8080' + '/updateRemoteTable',
+                          url: 'http://' + sourceName + ':8080' + '/updateRemoteTable',
                           form: {fileList: fileList}
                         }, function (error, response, body) {
                           console.log(error)
