@@ -348,6 +348,12 @@ app.get('/listfile', function (req, res) {
   )
 })
 
+app.post('/updateRemoteTable', function (req, res) {
+  var body = req.body
+  console.log(body)
+  // io.emit('updateRemoteTable', )
+})
+
 // create socket.io to connect with browser clients
 const io = require('socket.io').listen(server)
 
