@@ -36,7 +36,7 @@
 			</form> 
 		
 			<% if (typeof status != "undefined") { %>
-				<p class="fs-25 " style="color:black;">Status:
+				<p id="status" class="fs-25 " style="color:black;">Status:
 					<%= status %>
 				</p>
 
@@ -48,7 +48,7 @@
 			<div class="gridftp-table ">
 
 				<div>
-					<h2>Local site:
+					<h2 id="sourceHostName">Local site:
 						<%= sourceHostName %>
 							</h1>
 							<h2>IP:
@@ -66,7 +66,7 @@
 									<input type="hidden" name="desIp" value=<%=desIp %>>
 									
 
-									<table class="table table-hover table-bordered">
+									<table  class="table table-hover table-bordered">
 										<thead>
 											<tr class="table-primary">
 												<th scope="col">Select</th>
@@ -78,19 +78,19 @@
 
 
 
-										<tbody>
+										<tbody id="sourceTable">
 											<% var index = 1%>
 												<% Object.keys(fileList).forEach(function(fileName){ %>
 													
 														<tr>
 															<th scope="row">
 																<input type="radio" name="sourceFile" id="sourceFile" <% if (index == 1) {%> checked="checked" <% } %> value='{"fileName": "<%= fileName %>", "fileSize": "<%= fileList[fileName] %>"}' > </th>
-																
-															<td>
+																<!-- <input type="radio" name="sourceFile" id="sourceFile" <% if (index == 1) {%> checked="checked" <% } %> value='{"fileName": "<%= fileName %>", "fileSize": "<%= fileList[fileName] %>", "index": "<%= index %>"}' > </th> -->
+															<td id="sourceIndex">
 																<%= index %>
 															</td>
 															<td>
-																<% %>
+																
 																<%= fileName %>
 															</td>
 															<td>
@@ -104,17 +104,18 @@
 																	<% }) %>
 
 										</tbody>
-
+									</table>
 								</ul>
 
 
 
 
 
-								</table>
+								
 								<center>
-									<button id="upload" type="submit" class="btn btn-success">Upload</button>
-									<button id="delete" type="submit" formaction="/local_delete" class="btn btn-danger">Delete</button>
+									<button id="localUpload" type="submit" class="btn btn-success">Upload</button>
+									<button id="localDelete" type="submit" formaction="" class="btn btn-danger">Delete</button>
+									<!-- <button id="localDelete" type="submit" formaction="/local_delete" class="btn btn-danger">Delete</button> -->
 								</center>
 							</form>
 							<hr>
@@ -166,7 +167,7 @@
 													
 														<tr>
 															<th scope="row">
-																<input type="radio" name="sourceFile" id="sourceFile"  <% if (index == 1) {%> checked="checked" <% } %> value='{"fileName": "<%= fileName %>", "fileSize": "<%= desFileList[fileName] %>"}'  > </th>
+																<input type="radio" name="sourceFile" id="desFile"  <% if (index == 1) {%> checked="checked" <% } %> value='{"fileName": "<%= fileName %>", "fileSize": "<%= desFileList[fileName] %>"}'  > </th>
 															<td>
 																<%= index %>
 															</td>
@@ -183,10 +184,10 @@
 																	<% }) %>
 
 										</tbody>
-
+									</table>
 								</ul>
 								
-								</table>
+								
 								<center>
 									<button id="download" type="submit" class="btn btn-success">Download</button>
 									<button id="delete" type="submit" formaction="/remote_delete" class="btn btn-danger">Delete</button>
@@ -224,18 +225,112 @@
 			this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) + $(window).scrollLeft()) + "px");
 			return this;
 		}
-		$("#upload").on("click", function () {
+		
+		// end-end information
+		var sourceName = '<%- sourceHostName %>'
+		var sourceIp = '<%- sourceIp %>'
+		var desName = '<%- desName %>'
+		var desIp = '<%- desIp %>'
+		
+		
+
+		$("#localUpload").on("click", function () {
 			$("#loading").fadeIn().center();
+		});
+		
+		$("#localDelete").on("click", function () {
+			var sourceFile = JSON.parse($('input[id=sourceFile]:checked').val())
+
+			var context = {
+				sourceName: sourceName, 
+				sourceIp: sourceIp,
+				desName: desName,
+				desIp: desIp,
+				sourceFile: sourceFile
+			}
+			
+			socket.emit('localDelete', context)
+			return false;
 		});
 
 		$("#download").on("click", function () {
 			$("#loading").fadeIn().center();
 		});
 		
+		// socket io
 		var socket = io()
-		// socket.on('talk', function (message) {
-		// 	alert(`hello ${message}`);
-		// })
+		
+		socket.on('localDelete', function (context) {
+			var fileName = context.fileName
+			var err = context.err
+
+			if (!err) { // check if not error while delete file
+				var fileList = context.fileList
+				var status = `Status: Delete ${fileName} success`
+
+				var currentRow = $('input[id=sourceFile]:checked').closest('tr') // get tr that is selected
+				var index = currentRow.find('td:eq(0)').text()  // get last index value 
+				
+				createTable('#sourceTable', fileList, 'sourceFile', index)
+				$('#status').text(status)
+			} else { // check if error while delete file
+				status = 'Error while delete file ' + filename
+				$('#status').text(status)
+			}
+		})
+		
+		function createTable (id, fileList, inputId, lastIndex) {
+			$(id).html('')
+			
+			var fileListLength = Object.keys(fileList).length  // length filelist Object
+			if (lastIndex > fileListLength) {  
+				lastIndex = fileListLength
+			}
+
+			var index = 1
+			Object.keys(fileList).forEach(function(fileName){
+				if (index == (lastIndex)) {
+					$(id).append(`
+					<tr>
+						<th scope="row"> 
+							<input type="radio" name="sourceFile" id="${inputId}" checked="checked" value='{"fileName": "${fileName}", "fileSize": "${fileList[fileName]}"}'> 
+						</th> 
+						<td>
+							${index}
+						</td>
+						<td>
+							${fileName}
+						</td>
+						<td>
+							${fileList[fileName]}
+						</td>
+					</tr>
+				`)
+				} else {
+					$(id).append(`
+					<tr>
+						<th scope="row"> 
+							<input type="radio" name="sourceFile" id="${inputId}" value='{"fileName": "${fileName}", "fileSize": "${fileList[fileName]}"}'> 
+						</th> 
+						<td>
+							${index}
+						</td>
+						<td>
+							${fileName}
+						</td>
+						<td>
+							${fileList[fileName]}
+						</td>
+					</tr>
+				`)
+				}
+
+				index = index + 1
+			})
+		}
+		
+		
+
 	</script>
 	<!--===============================================================================================-->
 	<script src="js/main.js"></script>

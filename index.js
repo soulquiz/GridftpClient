@@ -342,8 +342,36 @@ const io = require('socket.io').listen(server)
 io.on('connection', function (socket) {
   console.log(`connected`)
 
-  socket.on('talk', function (ip) {
-    console.log(`hello ${ip}`)
+  // socket.on('sourceHostName', function (sourceHostName) {
+  //   console.log(`hello ${sourceHostName}`)
+  //   getFileList(sourceHostName, 8080, function (fileList) {
+  //     io.emit('fileList', fileList)
+  //   })
+  // })
+
+  socket.on('localDelete', function (context) {
+    console.log(context)
+
+    var filePath = '/home/guser/Desktop/'
+    var sourceName = context.sourceName
+    var fileName = context.sourceFile.fileName
+
+    deleteFile(filePath, fileName, function (err) {
+      if (!err) { // check if not error while delete file
+        getFileList(sourceName, 8080, function (fileList) {
+          io.emit('localDelete', {
+            err: err,
+            fileList: fileList,
+            fileName: fileName
+          })
+        })
+      } else { // check if error while delete file
+        io.emit('localDelete', {
+          err: err,
+          fileName: fileName
+        })
+      }
+    })
   })
 
   socket.on('disconnect', function () {
