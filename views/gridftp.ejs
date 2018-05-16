@@ -160,7 +160,7 @@
 
 
 
-										<tbody>
+										<tbody id="desTable">
 											<% var index = 1%>
 												<% Object.keys(desFileList).forEach(function(fileName){ %>
 
@@ -189,8 +189,9 @@
 								
 								
 								<center>
-									<button id="download" type="submit" class="btn btn-success">Download</button>
-									<button id="delete" type="submit" formaction="/remote_delete" class="btn btn-danger">Delete</button>
+									<button id="remoteDownload" type="submit" class="btn btn-success">Download</button>
+									<button id="remoteDelete" type="submit" formaction="" class="btn btn-danger">Delete</button>
+									<!-- <button id="remoteDelete" type="submit" formaction="/remote_delete" class="btn btn-danger">Delete</button> -->
 
 								</center>
 							</form>
@@ -253,10 +254,25 @@
 			return false;
 		});
 
-		$("#download").on("click", function () {
+		$("#remoteDownload").on("click", function () {
 			$("#loading").fadeIn().center();
 		});
 		
+		$("#remoteDelete").on("click", function () {
+			var sourceFile = JSON.parse($('input[id=desFile]:checked').val())
+
+			var context = {
+				sourceName: sourceName, 
+				sourceIp: sourceIp,
+				desName: desName,
+				desIp: desIp,
+				sourceFile: sourceFile
+			}
+			
+			socket.emit('remoteDelete', context)
+			return false;
+		});
+
 		// socket io
 		var socket = io()
 		
@@ -265,6 +281,10 @@
 			var index = currentRow.find('td:eq(0)').text()  // get last index value 
 			
 			createTable('#desTable', fileList, 'desFile', index)
+		})
+		
+		socket.on('updateLocalTable', function (fileList) {
+			console.log(fileList)
 		})
 
 		socket.on('localDelete', function (context) {

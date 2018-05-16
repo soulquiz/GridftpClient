@@ -353,6 +353,11 @@ app.post('/updateRemoteTable', function (req, res) {
   io.emit('updateRemoteTable', fileList)
 })
 
+app.post('/updateLocalTable', function (req, res) {
+  var fileList = req.body.fileList
+  io.emit('updateLocalTalbe', fileList)
+})
+
 // create socket.io to connect with browser clients
 const io = require('socket.io').listen(server)
 
@@ -391,6 +396,56 @@ io.on('connection', function (socket) {
         io.emit('localDelete', {
           err: err,
           fileName: fileName
+        })
+      }
+    })
+  })
+
+  socket.on('remoteDelete', function (context) {
+    var fileName = context.sourceFile.fileName
+    var desName = context.desName
+    console.log(context)
+    request.post({
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      url: 'http://' + desName + ':8080' + '/delete',
+      body: 'sourceFile=' + fileName
+    }, function (error, response, body) {
+      if (!error) { // check if not error while request
+        var bodyObj = JSON.parse(body)
+
+        if (!bodyObj.err) { // check if not error while delete file
+          getFileList(desName, 8080, function (fileList) {
+            io.emit('remoteDelete', { // update remote table and display status
+              err: bodyObj.err,
+              fileList: fileList,
+              fileName: fileName
+            })
+
+            request.post({ // update source table of destination
+              headers: { 'content-type': 'application/x-www-form-urlencoded' },
+              url: 'http://' + desName + ':8080' + '/updateLocalTable',
+              form: {fileList: fileList}
+            }, function (error, response, body) {
+              console.log(error)
+              if (!error) { // check if not error while request
+                console.log('Update Local Table ' + desName + 'success')
+              } else { // if error while request to delete
+                console.log(error)
+              }
+            })
+          })
+        } else { // if error while delete file
+          io.emit('remoteDelete', {
+            err: bodyObj.err,
+            status: `Error while delete file ${fileName}`
+          })
+        }
+      } else {
+        console.log(error)
+
+        io.emit('remoteDelete', {
+          err: true,
+          status: 'Error while delete request to remote site '
         })
       }
     })
