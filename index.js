@@ -48,48 +48,60 @@ app.get('/gridftp', function (req, res) {
       cmd.get('hostname', function (err, data, stderr) { // get source hostname
         if (!err) {
           data = data.replace('\n', '') // remove \n from data return
-          var context = { sourceHostName: data }
-
-          cmd.get('hostname -I', function (err, data, stderr) { // get souece ip
-            if (!err) {
-              context.sourceIp = data.replace('\n', '') // remove \n from data return
-              getFileList('localhost', 8080, function (body) {
-                context.fileList = body // get file list
-
-                context.desName = req.query.desName // get destination information from form
-                context.desIp = req.query.desIp
-                context.status = req.query.status
-
-                getFileList(context.desIp, 8080, function (result) {
-                  context.desFileList = result // get file list of destination host
-
-                  // create socket.io to connect with browser clients
-                  // const io = require('socket.io').listen(server)
-
-                  // create destination socket io to connect with destination host
-                  // const desIO = require('socket.io-client')(`http://${context.desIp}:8080`)
-                  // desIO.on('connect', function (socket) {
-                  //   desIO.emit('talk', context.sourceIp)
-                  // })
-                  // console.log(`http://${context.desIp}:8080/gridftp`)
-                  // io.on('connection', function (socket) {
-                  //   console.log(`gridftp connected`)
-
-                  //   io.emit('talk', 'chatchai')
-                  //   socket.on('disconnect', function () {
-                  //     console.log(`gridftp disconnect`)
-                  //   })
-                  // })
-
-                  res.render('gridftp', context)
-                })
-              })
-            } else {
-              console.log('error : ', err)
-              res.redirect('/') // return to home page
+          var context = {}
+          if (data === req.query.desName) { // if connect to your own host
+            context = {
+              connectivity: connectivity,
+              status: "You Can't connect to your own device"
             }
-          })
-        } else {
+            res.redirect(url.format({
+              pathname: '/',
+              query: context
+            }))
+          } else { // connect to destination device
+            context = { sourceHostName: data }
+
+            cmd.get('hostname -I', function (err, data, stderr) { // get souece ip
+              if (!err) {
+                context.sourceIp = data.replace('\n', '') // remove \n from data return
+                getFileList('localhost', 8080, function (body) {
+                  context.fileList = body // get file list
+
+                  context.desName = req.query.desName // get destination information from form
+                  context.desIp = req.query.desIp
+                  context.status = req.query.status
+
+                  getFileList(context.desIp, 8080, function (result) {
+                    context.desFileList = result // get file list of destination host
+
+                    // create socket.io to connect with browser clients
+                    // const io = require('socket.io').listen(server)
+
+                    // create destination socket io to connect with destination host
+                    // const desIO = require('socket.io-client')(`http://${context.desIp}:8080`)
+                    // desIO.on('connect', function (socket) {
+                    //   desIO.emit('talk', context.sourceIp)
+                    // })
+                    // console.log(`http://${context.desIp}:8080/gridftp`)
+                    // io.on('connection', function (socket) {
+                    //   console.log(`gridftp connected`)
+
+                    //   io.emit('talk', 'chatchai')
+                    //   socket.on('disconnect', function () {
+                    //     console.log(`gridftp disconnect`)
+                    //   })
+                    // })
+
+                    res.render('gridftp', context)
+                  })
+                })
+              } else { // can't get source ip
+                console.log('error : ', err)
+                res.redirect('/') // return to home page
+              }
+            })
+          }
+        } else { // can't get source hostname
           console.log('error : ', err)
           res.redirect('/') // return to home page
         }
@@ -355,14 +367,27 @@ io.on('connection', function (socket) {
     var filePath = '/home/guser/Desktop/'
     var sourceName = context.sourceName
     var fileName = context.sourceFile.fileName
+    var desName = context.desName
 
     deleteFile(filePath, fileName, function (err) {
       if (!err) { // check if not error while delete file
         getFileList(sourceName, 8080, function (fileList) {
-          io.emit('localDelete', {
+          io.emit('localDelete', { // update local table and display status
             err: err,
             fileList: fileList,
             fileName: fileName
+          })
+
+          request.post({ // update remote table of destination
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+            url: 'http://' + desName + ':8080' + '/updateRemoteTable',
+            body: 'fileList=' + fileList
+          }, function (error, response, body) {
+            if (!error) { // check if not error while request
+              console.log('Update remote Table ' + desName + 'success')
+            } else { // if error while request to delete
+              console.log(error)
+            }
           })
         })
       } else { // check if error while delete file

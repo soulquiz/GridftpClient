@@ -68,7 +68,7 @@
 						<br>		
 					<% if ((typeof connectivity != "undefined") && (typeof status != "undefined")) { %>
 						<% if (connectivity == "true") { %>
-							<p class="text-center ">Connected <%= status %> </p>
+							<p class="text-center "> <%= status %> </p>
 						<%} else { %>
 							<p class="text-center" >Can't connect to destination <%= status %> </p>
 						<%} %>
