@@ -349,9 +349,8 @@ app.get('/listfile', function (req, res) {
 })
 
 app.post('/updateRemoteTable', function (req, res) {
-  var body = req.body
-  console.log(body)
-  // io.emit('updateRemoteTable', )
+  var fileList = req.body.fileList
+  io.emit('updateRemoteTable', fileList)
 })
 
 // create socket.io to connect with browser clients
@@ -360,16 +359,7 @@ const io = require('socket.io').listen(server)
 io.on('connection', function (socket) {
   console.log(`connected`)
 
-  // socket.on('sourceHostName', function (sourceHostName) {
-  //   console.log(`hello ${sourceHostName}`)
-  //   getFileList(sourceHostName, 8080, function (fileList) {
-  //     io.emit('fileList', fileList)
-  //   })
-  // })
-
   socket.on('localDelete', function (context) {
-    console.log(context)
-
     var filePath = '/home/guser/Desktop/'
     var sourceName = context.sourceName
     var fileName = context.sourceFile.fileName
@@ -387,8 +377,9 @@ io.on('connection', function (socket) {
           request.post({ // update remote table of destination
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
             url: 'http://' + desName + ':8080' + '/updateRemoteTable',
-            body: 'fileList=' + fileList
+            form: {fileList: fileList}
           }, function (error, response, body) {
+            console.log(error)
             if (!error) { // check if not error while request
               console.log('Update remote Table ' + desName + 'success')
             } else { // if error while request to delete

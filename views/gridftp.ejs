@@ -260,6 +260,13 @@
 		// socket io
 		var socket = io()
 		
+		socket.on('updateRemoteTable', function (fileList) {
+			var currentRow = $('input[id=desFile]:checked').closest('tr') // get tr that is selected
+			var index = currentRow.find('td:eq(0)').text()  // get last index value 
+			
+			createTable('#desTable', fileList, 'desFile', index)
+		})
+
 		socket.on('localDelete', function (context) {
 			var fileName = context.fileName
 			var err = context.err
