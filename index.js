@@ -355,7 +355,7 @@ app.post('/updateRemoteTable', function (req, res) {
 
 app.post('/updateLocalTable', function (req, res) {
   var fileList = req.body.fileList
-  io.emit('updateLocalTalbe', fileList)
+  io.emit('updateLocalTable', fileList)
 })
 
 // create socket.io to connect with browser clients
@@ -412,13 +412,13 @@ io.on('connection', function (socket) {
     }, function (error, response, body) {
       if (!error) { // check if not error while request
         var bodyObj = JSON.parse(body)
-
+        
         if (!bodyObj.err) { // check if not error while delete file
           getFileList(desName, 8080, function (fileList) {
             io.emit('remoteDelete', { // update remote table and display status
               err: bodyObj.err,
               fileList: fileList,
-              fileName: fileName
+              status: `Status: Delete ${fileName} success`
             })
 
             request.post({ // update source table of destination

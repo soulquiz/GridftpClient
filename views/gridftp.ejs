@@ -284,7 +284,10 @@
 		})
 		
 		socket.on('updateLocalTable', function (fileList) {
-			console.log(fileList)
+			var currentRow = $('input[id=sourceFile]:checked').closest('tr') // get tr that is selected
+			var index = currentRow.find('td:eq(0)').text()  // get last index value 
+
+			createTable('#sourceTable', fileList, 'sourceFile', index)
 		})
 
 		socket.on('localDelete', function (context) {
@@ -302,6 +305,23 @@
 				$('#status').text(status)
 			} else { // check if error while delete file
 				status = 'Error while delete file ' + filename
+				$('#status').text(status)
+			}
+		})
+
+		socket.on('remoteDelete', function (context) {
+			var err = context.err
+			if (!err) { // check if not error while delete file
+				var fileList = context.fileList
+				var status = context.status
+
+				var currentRow = $('input[id=desFile]:checked').closest('tr') // get tr that is selected
+				var index = currentRow.find('td:eq(0)').text()  // get last index value 
+				
+				createTable('#desTable', fileList, 'desFile', index)
+				$('#status').text(status)
+			} else { // check if error while delete file
+				status = context.status
 				$('#status').text(status)
 			}
 		})
