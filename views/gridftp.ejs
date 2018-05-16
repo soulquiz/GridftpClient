@@ -36,7 +36,7 @@
 			</form> 
 		
 			<% if (typeof status != "undefined") { %>
-				<p id="status" class="fs-25 " style="color:black;">Status:
+				<p id="status" class="fs-25 " style="color:black;">Status: 
 					<%= status %>
 				</p>
 
@@ -237,6 +237,18 @@
 
 		$("#localUpload").on("click", function () {
 			$("#loading").fadeIn().center();
+
+			var sourceFile = JSON.parse($('input[id=sourceFile]:checked').val())
+			var context = {
+				sourceName: sourceName, 
+				sourceIp: sourceIp,
+				desName: desName,
+				desIp: desIp,
+				sourceFile: sourceFile
+			}
+
+			socket.emit('localUpload', context)
+			return false;
 		});
 		
 		$("#localDelete").on("click", function () {
@@ -288,6 +300,27 @@
 			var index = currentRow.find('td:eq(0)').text()  // get last index value 
 
 			createTable('#sourceTable', fileList, 'sourceFile', index)
+		})
+		
+		socket.on('localUpload', function (context) {
+			var connectivity = context.connectivity
+			
+			if(connectivity === false) { // if can't connect to destination
+				var status = `Status: ${context.status}`
+				$('#status').text(status)
+				$("#loading").fadeOut().center();
+			} else { // if can upload success update table and status
+				status = `Status: ${context.status}`
+				var fileList = context.fileList
+
+				var currentRow = $('input[id=desFile]:checked').closest('tr') // get tr that is selected
+				var index = currentRow.find('td:eq(0)').text()  // get last index value 
+				
+				createTable('#desTable', fileList, 'desFile', index)
+				
+				$('#status').text(status)
+				$("#loading").fadeOut().center();
+			}
 		})
 
 		socket.on('localDelete', function (context) {
